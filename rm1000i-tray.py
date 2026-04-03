@@ -4,15 +4,17 @@ import pystray
 from PIL import Image, ImageDraw, ImageFont
 import liquidctl
 
-INTERVAL = 1  # seconds between updates
+INTERVAL = 1  # poll rate in seconds; PSU firmware updates at ~1Hz
 
 def get_stats(device):
+    # liquidctl returns 3-tuples (key, value, unit); strip unit
     try:
         return {k: v for k, v, *_ in device.get_status()}
     except Exception:
         return None
 
 def make_icon(text, color=(255, 255, 255)):
+    # Render at 256x256 so Windows scales it down cleanly to tray size
     size = 256
     img = Image.new(mode="RGBA", size=(size, size), color=(0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -39,6 +41,7 @@ def format_tooltip(status):
         f"VRM: {v('VRM temperature')} C",
         f"Fan: {v('Fan speed')} rpm",
     ]
+    # Windows tray tooltip hard limit is 128 chars
     return "\n".join(lines)[:127]
 
 def updater(icon):
@@ -50,12 +53,12 @@ def updater(icon):
             if device is None:
                 devices = list(liquidctl.find_liquidctl_devices(match="RM1000i"))
                 if not devices:
-                    raise RuntimeError("zařízení nenalezeno")
+                    raise RuntimeError("device not found")
                 device = devices[0]
                 device.connect()
             status = get_stats(device)
             if not status:
-                raise RuntimeError("prázdný status")
+                raise RuntimeError("empty status")
             watts = status.get("Total power output")
             label = f"{int(watts)}" if watts is not None else "??"
             color = (255, 80, 80) if watts and watts > 800 else (255, 255, 255)
@@ -64,6 +67,7 @@ def updater(icon):
             icon.icon = last_icon
             icon.title = last_title
         except Exception:
+            # Keep last known values visible while reconnecting
             try:
                 device.disconnect()
             except Exception:
@@ -78,9 +82,9 @@ def main():
     icon = pystray.Icon(
         name="rm1000i",
         icon=make_icon("..."),
-        title="RM1000i: načítám...",
+        title="RM1000i: loading...",
         menu=pystray.Menu(
-            pystray.MenuItem("Ukončit", lambda icon, item: icon.stop())
+            pystray.MenuItem("Quit", lambda icon, item: icon.stop())
         )
     )
     t = threading.Thread(target=updater, args=(icon,), daemon=True)
