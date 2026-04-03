@@ -4,7 +4,7 @@ Windows system tray app that shows live power consumption from a **Corsair RM100
 
 iCUE doesn't expose wattage data — this tool reads it directly via USB HID using [liquidctl](https://github.com/liquidctl/liquidctl).
 
-![tray icon showing wattage](screenshot.png)
+<img src="screenshot.png" width="320" alt="tray icon showing wattage" />
 
 ## Features
 
