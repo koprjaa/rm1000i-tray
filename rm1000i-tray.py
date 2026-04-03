@@ -94,6 +94,8 @@ def updater(icon):
         time.sleep(INTERVAL)
 
 def main():
+    # Allow the shell and system tray to fully initialize before registering the icon
+    time.sleep(10)
     icon = pystray.Icon(
         name="rm1000i",
         icon=make_icon("..."),
