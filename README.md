@@ -1,5 +1,7 @@
 # rm1000i-tray
 
+![status](https://img.shields.io/badge/status-active-lightgrey?style=flat-square) ![python](https://img.shields.io/badge/python-3.10%2B-lightgrey?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+
 Windows system tray app that shows live power consumption from a **Corsair RM1000i** PSU.
 
 iCUE doesn't expose wattage data — this tool reads it directly via USB HID using [liquidctl](https://github.com/liquidctl/liquidctl).
