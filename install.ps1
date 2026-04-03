@@ -1,5 +1,17 @@
-# RM1000i Tray - Installer
-# Installs dependencies and sets up autostart via registry
+# Project: rm1000i-tray
+# File:    install.ps1
+#
+# Description:
+# Installs Python dependencies and registers the tray app as a login autostart
+# entry in the current user's registry Run key.
+#
+# Author:
+# Jan Alexandr Kopřiva
+# jan.alexandr.kopriva@gmail.com
+#
+# Created: 2026-04-03
+#
+# License: MIT
 
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
