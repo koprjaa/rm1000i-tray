@@ -48,8 +48,8 @@ def make_icon(text, color=(255, 255, 255)):
 def format_tooltip(status):
     def v(key): return status.get(key, "?")
     lines = [
-        f"Prikon: {v('Total power output')} W",
-        f"Ucinnost: {v('Estimated efficiency')} %",
+        f"Power: {v('Total power output')} W",
+        f"Efficiency: {v('Estimated efficiency')} %",
         f"+12V: {v('+12V output power')} W",
         f"+5V: {v('+5V output power')} W",
         f"+3.3V: {v('+3.3V output power')} W",
