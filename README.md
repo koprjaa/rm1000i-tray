@@ -1,25 +1,17 @@
 # rm1000i-tray
 
-**Windows system-tray widget that shows live power draw from a Corsair RM1000i PSU — something iCUE doesn't expose.**
+Windows system tray widget that shows the live power draw of a Corsair RM1000i power supply. iCUE does not expose this number.
 
 ![python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![license](https://img.shields.io/badge/license-MIT-A31F34?style=flat-square)
 ![status](https://img.shields.io/badge/status-active-22863A?style=flat-square)
 ![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?style=flat-square&logo=windows&logoColor=white)
-![liquidctl](https://img.shields.io/badge/liquidctl-1.16+-555?style=flat-square)
-![pystray](https://img.shields.io/badge/pystray-0.19+-555?style=flat-square)
 
-<img src="screenshot.png" width="320" alt="tray icon showing wattage" />
+<img src="screenshot.png" width="320" alt="Tray icon showing wattage" />
 
-Reads wattage, rail voltages, efficiency, VRM temperature, and fan speed straight off the PSU over USB HID, using [liquidctl](https://github.com/liquidctl/liquidctl). Updates the tray icon every second. Tooltip shows everything. Icon turns red over 800 W — handy when tuning GPU undervolts or catching runaway transients.
+The widget reads wattage, rail voltages, efficiency, VRM temperature, and fan speed from the power supply over USB HID with [liquidctl](https://github.com/liquidctl/liquidctl). It updates the icon every second. The icon turns red above 800 W, which helps when you tune a GPU undervolt or look for a runaway transient.
 
-## What the tooltip has
-
-- Total power draw (W)
-- Efficiency (%)
-- Per-rail power: +12 V, +5 V, +3.3 V
-- VRM temperature
-- Fan speed
+The tooltip shows total power draw, efficiency, power on the +12 V, +5 V, and +3.3 V rails, VRM temperature, and fan speed.
 
 ## Install
 
@@ -29,23 +21,31 @@ cd rm1000i-tray
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-The installer sets up autostart on login. **Close iCUE first** — it locks the USB HID device and this tool won't be able to open it while iCUE is running.
+The installer adds the widget to autostart.
 
-## Manual run
+Close iCUE before you start the widget. iCUE locks the USB HID device, and this tool cannot open it while iCUE runs.
+
+## Use
 
 ```bash
 pythonw rm1000i-tray.py
 ```
 
-`pythonw` instead of `python` so no console window appears.
+Use `pythonw` instead of `python` so that no console window appears.
 
-## Works with
+## Hardware
 
-Any Corsair RMi / HXi series PSU that liquidctl supports (RM650i/750i/850i/1000i, HX750i/850i/1000i/1200i…). Tested daily on RM1000i.
+The widget works with any Corsair RMi or HXi power supply that liquidctl supports. This covers the RM650i, RM750i, RM850i, RM1000i, HX750i, HX850i, HX1000i, and HX1200i. Daily testing runs on an RM1000i.
 
-## Failure behaviour
+## How it works
 
-If a USB read hiccups, the tray keeps the last known value rather than flashing `??` — catches most transient read errors without user noise. A full disconnect triggers an auto-reconnect loop.
+A failed USB read keeps the last known value on the icon instead of showing an error. This hides transient read errors. A full disconnect starts a reconnect loop.
+
+## Limits
+
+- Windows only. The tray integration uses pystray.
+- iCUE and this widget cannot run at the same time.
+- No tests.
 
 ## License
 
