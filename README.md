@@ -5,7 +5,7 @@ Windows system tray widget that shows the live power draw of a Corsair RM1000i p
 ![python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![license](https://img.shields.io/badge/license-MIT-A31F34?style=flat-square)
 ![status](https://img.shields.io/badge/status-active-22863A?style=flat-square)
-![platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?style=flat-square&logo=windows&logoColor=white)
+[![ci](https://github.com/koprjaa/rm1000i-tray/actions/workflows/ci.yml/badge.svg)](https://github.com/koprjaa/rm1000i-tray/actions/workflows/ci.yml)
 
 <img src="screenshot.png" width="320" alt="Tray icon showing wattage" />
 
@@ -28,7 +28,7 @@ Close iCUE before you start the widget. iCUE locks the USB HID device, and this 
 ## Use
 
 ```bash
-pythonw rm1000i-tray.py
+pythonw rm1000i_tray.py
 ```
 
 Use `pythonw` instead of `python` so that no console window appears.
@@ -43,9 +43,18 @@ A failed USB read keeps the last known value on the icon instead of showing an e
 
 ## Limits
 
-- Windows only. The tray integration uses pystray.
+- Windows only. The tray integration uses pystray, and the icon font path points at the Windows font folder.
 - iCUE and this widget cannot run at the same time.
-- No tests.
+- Nothing verifies the readings against a second meter. The numbers are whatever the PSU firmware reports.
+
+## Development
+
+```bash
+uv run --extra dev ruff check .
+uv run --extra dev pytest -q
+```
+
+The tests cover the reading, formatting, and reconnect logic with a fake device. `liquidctl` and `pystray` are imported inside the functions that use them, so the module imports and the suite runs without a PSU or a tray. CI runs on Python 3.10, 3.11, and 3.12, on Linux and Windows.
 
 ## License
 

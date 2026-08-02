@@ -20,7 +20,7 @@ Write-Host "Installing dependencies..."
 pip install -r "$scriptDir\requirements.txt"
 
 $pythonw = (Get-Command pythonw.exe).Source
-$trayScript = "$scriptDir\rm1000i-tray.py"
+$trayScript = "$scriptDir\rm1000i_tray.py"
 
 Write-Host "Setting up autostart..."
 Set-ItemProperty `
