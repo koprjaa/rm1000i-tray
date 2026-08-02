@@ -1,3 +1,19 @@
+#
+# Project: rm1000i-tray
+# File:    test_rm1000i_tray.py
+#
+# Description:
+# Tests for the tooltip text, the icon color threshold, and a device that reports nothing.
+#
+# Author:
+# Jan Alexandr Kopřiva
+# jan.alexandr.kopriva@gmail.com
+#
+# Created: 2026-04-03
+#
+# License: MIT
+#
+
 """Tests for the tray widget logic.
 
 No PSU and no tray backend are needed. liquidctl and pystray are imported inside

@@ -1,9 +1,9 @@
+#
 # Project: rm1000i-tray
 # File:    rm1000i_tray.py
 #
 # Description:
-# System tray application that reads live power metrics from a Corsair RM1000i
-# PSU via USB HID and displays current wattage as a tray icon.
+# System tray widget that reads live power metrics from a Corsair RM1000i over USB HID and shows the current wattage as the icon.
 #
 # Author:
 # Jan Alexandr Kopřiva
@@ -12,6 +12,7 @@
 # Created: 2026-04-03
 #
 # License: MIT
+#
 
 import contextlib
 import threading
