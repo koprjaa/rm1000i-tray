@@ -8,7 +8,7 @@ name = "rm1000i-tray"
 version = "1.0.0"
 edition = "2021"
 license = "MIT"
-description = "Read-only Corsair RM1000i power monitor"
+description = "Displays Corsair RM1000i power readings in the Windows system tray."
 
 [dependencies]
 hidapi = { version = "2.6", default-features = false, features = ["linux-native-basic-udev"] }
