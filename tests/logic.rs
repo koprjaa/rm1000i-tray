@@ -17,7 +17,16 @@ fn full() -> Status {
         ("Fan speed", 880.0),
     ]
     .into_iter()
-    .map(|(k, v)| (k.into(), v))
+    .map(|(k, v)| {
+        (
+            k.into(),
+            if k == "Fan speed" {
+                Numeric::Integer(v as i64)
+            } else {
+                v.into()
+            },
+        )
+    })
     .collect()
 }
 struct Fake {
@@ -43,12 +52,12 @@ fn fake(result: Result<Status, String>) -> Fake {
 #[test]
 fn get_stats_drops_units() {
     let readings = vec![
-        ("Total power output".into(), 342.5, "W"),
-        ("Fan speed".into(), 880.0, "rpm"),
+        ("Total power output".into(), 342.5.into(), "W"),
+        ("Fan speed".into(), Numeric::Integer(880), "rpm"),
     ];
     let expected = [
-        ("Total power output".into(), 342.5),
-        ("Fan speed".into(), 880.0),
+        ("Total power output".into(), 342.5.into()),
+        ("Fan speed".into(), Numeric::Integer(880)),
     ]
     .into();
     assert_eq!(
@@ -69,7 +78,7 @@ fn tooltip_metrics() {
     let t = format_tooltip(&full());
     assert_eq!(t.lines().count(), 7);
     assert!(t.starts_with("Power: 342.5 W\n"));
-    assert!(t.ends_with("Fan: 880.0 rpm"));
+    assert!(t.ends_with("Fan: 880 rpm"));
 }
 #[test]
 fn tooltip_limit() {
@@ -81,7 +90,10 @@ fn tooltip_missing() {
 }
 #[test]
 fn tooltip_truncated() {
-    let s = full().into_keys().map(|k| (k, 1e100)).collect();
+    let s = full()
+        .into_keys()
+        .map(|k| (k, 1.2345678901234567e100.into()))
+        .collect();
     assert_eq!(format_tooltip(&s).len(), TOOLTIP_LIMIT);
 }
 #[test]
@@ -94,7 +106,7 @@ fn labels_truncate() {
         (-342.5, "-342"),
     ] {
         assert_eq!(
-            label_and_color(&[("Total power output".into(), w)].into()),
+            label_and_color(&[("Total power output".into(), w.into())].into()),
             (label.into(), if w > 800.0 { RED } else { WHITE })
         );
     }
@@ -102,21 +114,21 @@ fn labels_truncate() {
 #[test]
 fn red_above_threshold() {
     assert_eq!(
-        label_and_color(&[("Total power output".into(), 801.0)].into()).1,
+        label_and_color(&[("Total power output".into(), 801.0.into())].into()).1,
         RED
     );
 }
 #[test]
 fn white_at_threshold() {
     assert_eq!(
-        label_and_color(&[("Total power output".into(), 800.0)].into()).1,
+        label_and_color(&[("Total power output".into(), 800.0.into())].into()).1,
         WHITE
     );
 }
 #[test]
 fn zero_not_missing() {
     assert_eq!(
-        label_and_color(&[("Total power output".into(), 0.0)].into()),
+        label_and_color(&[("Total power output".into(), 0.0.into())].into()),
         ("0".into(), WHITE)
     );
 }
@@ -236,21 +248,42 @@ fn whitelist_exhaustive() {
     }
 }
 #[test]
-#[should_panic(expected = "whitelist")]
-fn forbidden_packet_asserts() {
-    packet(2, 0xf0, &[0]);
+fn forbidden_packet_returns_error() {
+    assert!(packet(2, 0xf0, &[0]).is_err());
+    assert!(packet(2, 0, &[0; 10000]).is_err());
 }
 #[test]
 fn packet_layout() {
-    let p = packet(3, 0x88, &[]);
+    let p = packet(3, 0x88, &[]).unwrap();
     assert_eq!(p.len(), 65);
     assert_eq!(&p[..4], &[0, 3, 0x88, 0]);
     assert!(p[4..].iter().all(|b| *b == 0));
-    assert_eq!(&packet(2, 0, &[2])[..4], &[0, 2, 0, 2]);
+    assert_eq!(&packet(2, 0, &[2]).unwrap()[..4], &[0, 2, 0, 2]);
 }
 #[test]
 fn efficiency_matches_reference() {
     assert_eq!(estimated_input(115.0, 500.0), 553.0);
     assert_eq!(estimated_input(230.0, 500.0), 550.0);
     assert_eq!(estimated_input(172.5, 500.0), 551.0);
+}
+
+#[test]
+fn integer_labels_keep_all_digits() {
+    for value in [i64::MIN, i64::MAX, 9007199254740993] {
+        let status = [("Total power output".into(), Numeric::Integer(value))].into();
+        assert_eq!(label_and_color(&status).0, value.to_string());
+    }
+}
+
+#[test]
+fn tray_creation_failure_is_not_reported_as_success() {
+    assert_eq!(
+        tray_result(Ok(()), Some("Tray creation failed".into())),
+        Err("Tray creation failed".into())
+    );
+    assert_eq!(
+        tray_result(Err("Event loop failed".into()), None),
+        Err("Event loop failed".into())
+    );
+    assert_eq!(tray_result(Ok(()), None), Ok(()));
 }

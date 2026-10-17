@@ -8,16 +8,15 @@ pub fn allowed(address: u8, opcode: u8, data: &[u8]) -> bool {
     (address == 3 && READ_OPCODES.contains(&opcode) && data.is_empty())
         || (address == 2 && opcode == 0 && data.len() == 1 && data[0] <= 2)
 }
-pub fn packet(address: u8, opcode: u8, data: &[u8]) -> [u8; 65] {
-    assert!(
-        allowed(address, opcode, data),
-        "PSU command outside read-only whitelist"
-    );
+pub fn packet(address: u8, opcode: u8, data: &[u8]) -> Result<[u8; 65], String> {
+    if !allowed(address, opcode, data) {
+        return Err("PSU command outside read-only whitelist".into());
+    }
     let mut out = [0; 65];
     out[1] = address;
     out[2] = opcode;
     out[3..3 + data.len()].copy_from_slice(data);
-    out
+    Ok(out)
 }
 pub fn linear11(bytes: [u8; 2]) -> f64 {
     let raw = u16::from_le_bytes(bytes);

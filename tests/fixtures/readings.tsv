@@ -1,0 +1,16 @@
+VRM temperature	500	°C
+Case temperature	500	°C
+Fan speed	500	rpm
+Input voltage	230	V
++12V output voltage	500	V
++12V output current	500	A
++12V output power	500	W
++5V output voltage	500	V
++5V output current	500	A
++5V output power	500	W
++3.3V output voltage	500	V
++3.3V output current	500	A
++3.3V output power	500	W
+Total power output	500	W
+Estimated input power	550.0	W
+Estimated efficiency	91.0	%

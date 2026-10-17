@@ -5,7 +5,7 @@
 // License: MIT
 use crate::{
     protocol::{estimated_input, linear11, packet},
-    stats_from_readings, Device, Status,
+    stats_from_readings, Device, Numeric, Reading, Status,
 };
 pub struct Psu(hidapi::HidDevice);
 impl Psu {
@@ -17,7 +17,7 @@ impl Psu {
         info.map(|d| d.open_device(&api).map(Self).map_err(|e| e.to_string()))
             .transpose()
     }
-    pub fn readings(&self) -> Result<Vec<(String, f64, &'static str)>, String> {
+    pub fn readings(&self) -> Result<Vec<Reading>, String> {
         Reader(&self.0).readings()
     }
 }
@@ -36,7 +36,7 @@ impl Io for hidapi::HidDevice {
 struct Reader<'a, T>(&'a T);
 impl<T: Io> Reader<'_, T> {
     fn exec(&self, address: u8, opcode: u8, data: &[u8]) -> Result<[u8; 64], String> {
-        let request = packet(address, opcode, data);
+        let request = packet(address, opcode, data)?;
         let written = self.0.write(&request).map_err(|e| e.to_string())?;
         if written != request.len() {
             return Err("Short HID write".into());
@@ -56,6 +56,9 @@ impl<T: Io> Reader<'_, T> {
                 .0
                 .read_timeout(&mut response, left.as_millis().max(1) as i32)
                 .map_err(|e| e.to_string())?;
+            if count == 0 {
+                return Err("Timed out HID response".into());
+            }
             if count == 64 && response[..2] == [address, opcode] {
                 return Ok(response);
             }
@@ -64,11 +67,17 @@ impl<T: Io> Reader<'_, T> {
     fn page(&self, rail: u8) -> Result<(), String> {
         self.exec(2, 0, &[rail]).map(|_| ())
     }
-    fn value(&self, opcode: u8) -> Result<f64, String> {
+    fn value(&self, opcode: u8) -> Result<Numeric, String> {
         let r = self.exec(3, opcode, &[])?;
-        Ok(linear11([r[2], r[3]]))
+        let value = linear11([r[2], r[3]]);
+        // Python's integer exponentiation returns an int for nonnegative exponents.
+        Ok(if (r[3] as i8) >> 3 >= 0 {
+            Numeric::Integer(value as i64)
+        } else {
+            Numeric::Float(value)
+        })
     }
-    pub fn readings(&self) -> Result<Vec<(String, f64, &'static str)>, String> {
+    pub fn readings(&self) -> Result<Vec<Reading>, String> {
         let mut discard = [0; 64];
         // Bound draining even if another process continuously generates reports.
         for i in 0..65 {
@@ -106,16 +115,16 @@ impl<T: Io> Reader<'_, T> {
             }
         }
         let watts = self.value(0xee)?;
-        let input = estimated_input(voltage, watts);
+        let input = estimated_input(voltage.as_f64(), watts.as_f64());
         if input <= 0.0 {
             return Err("Invalid estimated input power".into());
         }
         values.extend([
             ("Total power output".into(), watts, "W"),
-            ("Estimated input power".into(), input, "W"),
+            ("Estimated input power".into(), input.into(), "W"),
             (
                 "Estimated efficiency".into(),
-                (watts / input * 100.0).round_ties_even(),
+                (watts.as_f64() / input * 100.0).round_ties_even().into(),
                 "%",
             ),
         ]);
@@ -130,76 +139,5 @@ impl Device for Psu {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::cell::RefCell;
-    #[derive(Default)]
-    struct Wire {
-        sent: RefCell<Vec<Vec<u8>>>,
-        failure: u8,
-    }
-    impl Io for Wire {
-        fn write(&self, data: &[u8]) -> Result<usize, String> {
-            if self.failure == 1 {
-                return Err("unplugged during write".into());
-            }
-            self.sent.borrow_mut().push(data.to_vec());
-            Ok(if self.failure == 2 { 0 } else { data.len() })
-        }
-        fn read_timeout(&self, data: &mut [u8], timeout: i32) -> Result<usize, String> {
-            if self.failure == 3 {
-                return Err("unplugged during read".into());
-            }
-            if timeout == 1 {
-                return Ok(if self.failure == 8 { 64 } else { 0 });
-            }
-            if self.failure == 4 {
-                return Ok(0);
-            }
-            if self.failure == 5 {
-                return Ok(1);
-            }
-            let sent = self.sent.borrow();
-            let p = sent.last().unwrap();
-            data[0] = p[1];
-            data[1] = p[2];
-            let value: u16 = if p[2] == 0x88 { 230 } else { 500 };
-            data[2..4].copy_from_slice(&value.to_le_bytes());
-            if self.failure == 6 {
-                data[1] = 0xfe;
-            }
-            if self.failure == 7 {
-                data[0] = 0xff;
-            }
-            Ok(64)
-        }
-    }
-    #[test]
-    fn status_only_sends_whitelisted_commands() {
-        let wire = Wire::default();
-        let values = Reader(&wire).readings().unwrap();
-        assert_eq!(values.len(), 16);
-        assert!(values.contains(&("Total power output".into(), 500.0, "W")));
-        assert!(values.contains(&("Estimated input power".into(), 550.0, "W")));
-        assert!(values.contains(&("Estimated efficiency".into(), 91.0, "%")));
-        let sent = wire.sent.borrow();
-        for p in sent.iter() {
-            let payload = if p[1] == 2 { &p[3..4] } else { &p[3..3] };
-            assert!(crate::protocol::allowed(p[1], p[2], payload));
-            assert!(p[if p[1] == 2 { 4 } else { 3 }..].iter().all(|v| *v == 0));
-        }
-        let pages: Vec<_> = sent.iter().filter(|p| p[1] == 2).map(|p| p[3]).collect();
-        assert_eq!(pages, [0, 0, 1, 2, 0]);
-        assert_eq!(sent.len(), 19);
-    }
-    #[test]
-    fn usb_errors_short_packets_and_uninitialized_replies_are_errors() {
-        for failure in 1..=8 {
-            let wire = Wire {
-                failure,
-                ..Wire::default()
-            };
-            assert!(Reader(&wire).readings().is_err(), "failure {failure}");
-        }
-    }
-}
+#[path = "../tests/support/psu.rs"]
+mod tests;

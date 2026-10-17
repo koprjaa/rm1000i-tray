@@ -46,3 +46,36 @@ fn tray_requires_windows() {
     assert_eq!(o.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&o.stderr).contains("Windows"));
 }
+
+#[test]
+fn argument_combinations_are_rejected() {
+    for args in [
+        vec!["--once", "--once"],
+        vec!["--help", "--once"],
+        vec![""],
+        vec!["\u{feff}--once"],
+        vec!["--once\r\n"],
+        vec!["žluťoučký"],
+    ] {
+        let output = run(&args);
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+    }
+}
+#[test]
+#[cfg(unix)]
+fn invalid_utf8_argument_is_rejected_without_panicking() {
+    use std::os::unix::ffi::OsStringExt;
+    let output = Command::new(env!("CARGO_BIN_EXE_rm1000i-tray"))
+        .arg(std::ffi::OsString::from_vec(vec![255]))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(!String::from_utf8_lossy(&output.stderr).contains("panicked"));
+}
+
+#[test]
+fn large_argument_is_rejected() {
+    let large = "x".repeat(16000);
+    assert_eq!(run(&[&large]).status.code(), Some(2));
+}

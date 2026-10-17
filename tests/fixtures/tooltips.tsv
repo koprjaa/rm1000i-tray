@@ -1,0 +1,9 @@
+0.0	Power: 0.0 W\nEfficiency: 0.0 %\n+12V: 0.0 W\n+5V: 0.0 W\n+3.3V: 0.0 W\nVRM: 0.0 C\nFan: 0.0 rpm
+-0.0	Power: -0.0 W\nEfficiency: -0.0 %\n+12V: -0.0 W\n+5V: -0.0 W\n+3.3V: -0.0 W\nVRM: -0.0 C\nFan: -0.0 rpm
+342.5	Power: 342.5 W\nEfficiency: 342.5 %\n+12V: 342.5 W\n+5V: 342.5 W\n+3.3V: 342.5 W\nVRM: 342.5 C\nFan: 342.5 rpm
+1e-05	Power: 1e-05 W\nEfficiency: 1e-05 %\n+12V: 1e-05 W\n+5V: 1e-05 W\n+3.3V: 1e-05 W\nVRM: 1e-05 C\nFan: 1e-05 rpm
+1e+16	Power: 1e+16 W\nEfficiency: 1e+16 %\n+12V: 1e+16 W\n+5V: 1e+16 W\n+3.3V: 1e+16 W\nVRM: 1e+16 C\nFan: 1e+16 rpm
+1e+100	Power: 1e+100 W\nEfficiency: 1e+100 %\n+12V: 1e+100 W\n+5V: 1e+100 W\n+3.3V: 1e+100 W\nVRM: 1e+100 C\nFan: 1e+100 rpm
+1.2345678901234567e+100	Power: 1.2345678901234567e+100 W\nEfficiency: 1.2345678901234567e+100 %\n+12V: 1.2345678901234567e+100 W\n+5V: 1.2345678901234567e
+nan	Power: nan W\nEfficiency: nan %\n+12V: nan W\n+5V: nan W\n+3.3V: nan W\nVRM: nan C\nFan: nan rpm
+inf	Power: inf W\nEfficiency: inf %\n+12V: inf W\n+5V: inf W\n+3.3V: inf W\nVRM: inf C\nFan: inf rpm

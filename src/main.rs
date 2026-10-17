@@ -8,7 +8,7 @@
 mod windows;
 use rm1000i_tray::{number, psu::Psu};
 fn main() -> std::process::ExitCode {
-    let args: Vec<_> = std::env::args().skip(1).collect();
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
     #[cfg(all(windows, not(debug_assertions)))]
     if !args.is_empty() {
         // Attach CLI output to the invoking terminal without creating a new window.

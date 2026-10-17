@@ -27,6 +27,7 @@ struct App {
     tray: Option<TrayIcon>,
     quit: tray_icon::menu::MenuId,
     menu: Option<Menu>,
+    error: Option<String>,
 }
 fn icon(text: &str, color: [u8; 3]) -> Result<Icon, tray_icon::BadIcon> {
     // Hand Windows an icon already at tray size. Left to scale 256 px itself it
@@ -60,16 +61,23 @@ impl ApplicationHandler<Status> for App {
             let result = icon("...", WHITE)
                 .map_err(|e| e.to_string())
                 .and_then(|icon| {
+                    let menu = self
+                        .menu
+                        .take()
+                        .ok_or_else(|| "Tray menu already consumed".to_string())?;
                     TrayIconBuilder::new()
                         .with_icon(icon)
                         .with_tooltip("RM1000i: loading...")
-                        .with_menu(Box::new(self.menu.take().expect("menu created once")))
+                        .with_menu(Box::new(menu))
                         .build()
                         .map_err(|e| e.to_string())
                 });
             match result {
                 Ok(tray) => self.tray = Some(tray),
-                Err(_) => event_loop.exit(),
+                Err(error) => {
+                    self.error = Some(error);
+                    event_loop.exit();
+                }
             }
         }
     }
@@ -131,8 +139,9 @@ pub fn run() -> Result<(), String> {
         tray: None,
         quit: quit.id().clone(),
         menu: Some(menu),
+        error: None,
     };
     let result = event_loop.run_app(&mut app).map_err(|e| e.to_string());
     stop.store(true, Ordering::Relaxed);
-    result
+    rm1000i_tray::tray_result(result, app.error)
 }

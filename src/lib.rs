@@ -8,8 +8,26 @@ pub mod psu;
 use ab_glyph::{point, Font, FontArc, PxScale, ScaleFont};
 use image::{Rgba, RgbaImage};
 use std::collections::BTreeMap;
-pub type Status = BTreeMap<String, f64>;
-pub type Reading = (String, f64, &'static str);
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Numeric {
+    Integer(i64),
+    Float(f64),
+}
+impl Numeric {
+    pub fn as_f64(self) -> f64 {
+        match self {
+            Self::Integer(v) => v as f64,
+            Self::Float(v) => v,
+        }
+    }
+}
+impl From<f64> for Numeric {
+    fn from(value: f64) -> Self {
+        Self::Float(value)
+    }
+}
+pub type Status = BTreeMap<String, Numeric>;
+pub type Reading = (String, Numeric, &'static str);
 pub fn stats_from_readings(readings: Vec<Reading>) -> Status {
     readings
         .into_iter()
@@ -32,11 +50,22 @@ pub const FIELDS: [(&str, &str, &str); 7] = [
     ("VRM", "VRM temperature", "C"),
     ("Fan", "Fan speed", "rpm"),
 ];
-pub fn number(value: f64) -> String {
-    if value.fract() == 0.0 {
-        format!("{value:.1}")
+pub fn number(value: impl Into<Numeric>) -> String {
+    let value = match value.into() {
+        Numeric::Integer(value) => return value.to_string(),
+        Numeric::Float(value) => value,
+    };
+    if value.is_nan() {
+        return "nan".into();
+    }
+    // Debug formatting preserves .0 and the sign of zero. Python includes an
+    // explicit exponent sign and pads single-digit exponents to two digits.
+    let text = format!("{value:?}");
+    if let Some((mantissa, exponent)) = text.split_once('e') {
+        let exponent: i32 = exponent.parse().expect("formatted float exponent");
+        format!("{mantissa}e{exponent:+03}")
     } else {
-        value.to_string()
+        text
     }
 }
 pub fn format_tooltip(status: &Status) -> String {
@@ -58,14 +87,20 @@ pub fn format_tooltip(status: &Status) -> String {
         .collect()
 }
 pub fn label_and_color(status: &Status) -> (String, [u8; 3]) {
-    match status.get("Total power output").filter(|v| v.is_finite()) {
+    match status
+        .get("Total power output")
+        .copied()
+        .filter(|v| v.as_f64().is_finite())
+    {
         Some(w) => (
-            if w.trunc() == 0.0 {
+            if let Numeric::Integer(value) = w {
+                value.to_string()
+            } else if w.as_f64().trunc() == 0.0 {
                 "0".into()
             } else {
-                format!("{:.0}", w.trunc())
+                format!("{:.0}", w.as_f64().trunc())
             },
-            if *w > HIGH_WATTAGE_THRESHOLD {
+            if w.as_f64() > HIGH_WATTAGE_THRESHOLD {
                 RED
             } else {
                 WHITE
@@ -172,4 +207,12 @@ impl<D: Device> Monitor<D> {
             false
         }
     }
+}
+
+pub fn tray_result(
+    event_loop: Result<(), String>,
+    creation_error: Option<String>,
+) -> Result<(), String> {
+    event_loop?;
+    creation_error.map_or(Ok(()), Err)
 }
