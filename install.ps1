@@ -9,8 +9,14 @@ Push-Location $scriptDir
 try {
     cargo build --release
     if ($LASTEXITCODE -ne 0) { throw "cargo build failed ($LASTEXITCODE)" }
-    $exe = Join-Path $scriptDir "target\release\rm1000i-tray.exe"
-    if (-not (Test-Path $exe)) { throw "Executable not found: $exe" }
+    $built = Join-Path $scriptDir "target\release\rm1000i-tray.exe"
+    if (-not (Test-Path $built)) { throw "Executable not found: $built" }
+    # Run a copy so cargo clean or a rebuild does not touch the running widget.
+    $installDir = Join-Path $env:LOCALAPPDATA "Programs\rm1000i-tray"
+    New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+    Get-Process rm1000i-tray -ErrorAction SilentlyContinue | Stop-Process -Force
+    $exe = Join-Path $installDir "rm1000i-tray.exe"
+    Copy-Item -Force $built $exe
     $runKey = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
     if (-not (Test-Path $runKey)) { New-Item -Path $runKey | Out-Null }
     Set-ItemProperty -Path $runKey -Name "RM1000iTray" -Value ('"' + $exe + '"')
