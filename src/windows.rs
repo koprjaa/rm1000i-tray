@@ -29,7 +29,30 @@ struct App {
     menu: Option<Menu>,
 }
 fn icon(text: &str, color: [u8; 3]) -> Result<Icon, tray_icon::BadIcon> {
-    Icon::from_rgba(make_icon(text, color).into_raw(), 256, 256)
+    // Hand Windows an icon already at tray size. Left to scale 256 px itself it
+    // drops pixels and the digits come out jagged; pystray avoided this by
+    // passing a multi-size .ico that Pillow downscaled with Lanczos.
+    let size = tray_icon_size();
+    let img = image::imageops::resize(
+        &make_icon(text, color),
+        size,
+        size,
+        image::imageops::FilterType::Lanczos3,
+    );
+    Icon::from_rgba(img.into_raw(), size, size)
+}
+fn tray_icon_size() -> u32 {
+    use windows_sys::Win32::UI::{
+        HiDpi::{GetDpiForSystem, GetSystemMetricsForDpi},
+        WindowsAndMessaging::SM_CXSMICON,
+    };
+    // SAFETY: both calls only read system settings.
+    let px = unsafe { GetSystemMetricsForDpi(SM_CXSMICON, GetDpiForSystem()) };
+    if px > 0 {
+        px as u32
+    } else {
+        16
+    }
 }
 impl ApplicationHandler<Status> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
