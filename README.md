@@ -7,7 +7,7 @@ Displays Corsair RM1000i power readings in the Windows system tray.
 
 <img src="screenshot.png" width="320" alt="Tray icon showing wattage" />
 
-Based on [rm1000i-tray](https://github.com/koprjaa/rm1000i-tray) by Jan Alexandr Kopřiva. The original MIT copyright is preserved in LICENSE. Protocol references include [liquidctl](https://github.com/liquidctl/liquidctl), by Jonas Malaco and contributors, whose Corsair driver credits corsaiRMi by notaz and realies and reference work by Sean Nelson. The bundled [DejaVu font](https://dejavu-fonts.github.io/) credits Stepan Roh and retains the Bitstream copyright and license in `assets/FONT-LICENSE`.
+Protocol references include [liquidctl](https://github.com/liquidctl/liquidctl), by Jonas Malaco and contributors, whose Corsair driver credits corsaiRMi by notaz and realies and reference work by Sean Nelson. The bundled [DejaVu font](https://dejavu-fonts.github.io/) credits Stepan Roh and retains the Bitstream copyright and license in `assets/FONT-LICENSE`.
 
 ## What it does
 
