@@ -1,0 +1,21 @@
+# Project: rm1000i-tray
+# File: Cargo.toml
+# Description: Package and dependency definitions.
+# Author: Jan Alexandr Kopřiva
+# License: MIT
+[package]
+name = "rm1000i-tray"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Read-only Corsair RM1000i power monitor"
+
+[dependencies]
+hidapi = { version = "2.6", default-features = false, features = ["linux-native-basic-udev"] }
+image = { version = "0.25", default-features = false }
+ab_glyph = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+tray-icon = { version = "0.21", default-features = false }
+winit = { version = "0.30", default-features = false, features = ["rwh_06"] }
+windows-sys = { version = "0.61", features = ["Win32_System_Console"] }

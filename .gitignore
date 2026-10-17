@@ -1,3 +1,16 @@
+# Project: rm1000i-tray
+# File: .gitignore
+# Description: Build outputs and local tool caches.
+# Author: Jan Alexandr Kopřiva
+# License: MIT
+/target/
+/.cargo/bin/
+/.cargo/registry/
+/.cargo/.global-cache
+/.cargo/.package-cache*
+/.cargo/env
+/.rustup/
+/.reference/
 __pycache__/
 *.pyc
 .pytest_cache/

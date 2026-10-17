@@ -1,34 +1,21 @@
 # Project: rm1000i-tray
-# File:    install.ps1
-#
-# Description:
-# Installs Python dependencies and registers the tray app as a login autostart
-# entry in the current user's registry Run key.
-#
-# Author:
-# Jan Alexandr Kopřiva
-# jan.alexandr.kopriva@gmail.com
-#
-# Created: 2026-04-03
-#
+# File: install.ps1
+# Description: Build and register login autostart for the current user.
+# Author: Jan Alexandr Kopřiva
 # License: MIT
-
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-Write-Host "Installing dependencies..."
-pip install -r "$scriptDir\requirements.txt"
-
-$pythonw = (Get-Command pythonw.exe).Source
-$trayScript = "$scriptDir\rm1000i_tray.py"
-
-Write-Host "Setting up autostart..."
-Set-ItemProperty `
-    -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" `
-    -Name "RM1000iTray" `
-    -Value "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"Start-Process '$pythonw' -ArgumentList '$trayScript'`""
-
-Write-Host "Starting tray app..."
-Start-Process $pythonw -ArgumentList $trayScript
-
-Write-Host "Done! RM1000i Tray is running. Look for the wattage icon in your system tray."
+Push-Location $scriptDir
+try {
+    cargo build --release
+    if ($LASTEXITCODE -ne 0) { throw "cargo build failed ($LASTEXITCODE)" }
+    $exe = Join-Path $scriptDir "target\release\rm1000i-tray.exe"
+    if (-not (Test-Path $exe)) { throw "Executable not found: $exe" }
+    $runKey = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+    if (-not (Test-Path $runKey)) { New-Item -Path $runKey | Out-Null }
+    Set-ItemProperty -Path $runKey -Name "RM1000iTray" -Value ('"' + $exe + '"')
+    Start-Process -FilePath $exe
+    Write-Host "Done! RM1000i Tray is running. Look for the wattage icon in your system tray."
+} finally {
+    Pop-Location
+}

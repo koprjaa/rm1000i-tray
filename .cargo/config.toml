@@ -1,0 +1,7 @@
+# Project: rm1000i-tray
+# File: .cargo/config.toml
+# Description: GNU Windows cross linker.
+# Author: Jan Alexandr Kopřiva
+# License: MIT
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
