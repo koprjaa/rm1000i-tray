@@ -71,9 +71,7 @@ def make_icon(text, color=WHITE):
     img = Image.new(mode="RGBA", size=(ICON_SIZE, ICON_SIZE), color=(0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     try:
-        font = ImageFont.truetype(
-            "C:/Windows/Fonts/arialbd.ttf", size=155 if len(text) <= 3 else 120
-        )
+        font = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", size=155 if len(text) <= 3 else 120)
     except OSError:
         # No Arial, for example on a machine that is not Windows.
         font = ImageFont.load_default()
