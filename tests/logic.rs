@@ -287,3 +287,22 @@ fn tray_creation_failure_is_not_reported_as_success() {
     );
     assert_eq!(tray_result(Ok(()), None), Ok(()));
 }
+#[test]
+fn a_lost_psu_goes_stale_once_after_several_misses() {
+    let mut failures = 0;
+    let stale: Vec<bool> = (0..STALE_AFTER + 3)
+        .map(|_| went_stale(&mut failures, false))
+        .collect();
+    assert_eq!(stale.iter().filter(|s| **s).count(), 1);
+    assert!(stale[STALE_AFTER as usize - 1]);
+    assert!(!went_stale(&mut failures, true));
+    assert_eq!(failures, 0);
+    // One hiccup between good reads never goes stale.
+    assert!(!went_stale(&mut failures, false));
+}
+#[test]
+fn an_empty_status_reads_as_unknown() {
+    let empty = Status::new();
+    assert_eq!(label_and_color(&empty).0, "??");
+    assert!(format_tooltip(&empty).contains("Power: ? W"));
+}

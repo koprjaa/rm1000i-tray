@@ -7,7 +7,7 @@ pub mod protocol;
 pub mod psu;
 use ab_glyph::{point, Font, FontArc, PxScale, ScaleFont};
 use image::{Rgba, RgbaImage};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::LazyLock};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Numeric {
     Integer(i64),
@@ -110,12 +110,17 @@ pub fn label_and_color(status: &Status) -> (String, [u8; 3]) {
     }
 }
 pub fn make_icon(text: &str, color: [u8; 3]) -> RgbaImage {
-    let font = std::fs::read("C:/Windows/Fonts/arialbd.ttf")
-        .ok()
-        .and_then(|b| FontArc::try_from_vec(b).ok())
-        .unwrap_or_else(|| {
-            FontArc::try_from_slice(include_bytes!("../assets/fallback.ttf")).expect("bundled font")
-        });
+    // Loaded once: the icon is redrawn every second on the UI thread.
+    static FONT: LazyLock<FontArc> = LazyLock::new(|| {
+        std::fs::read("C:/Windows/Fonts/arialbd.ttf")
+            .ok()
+            .and_then(|b| FontArc::try_from_vec(b).ok())
+            .unwrap_or_else(|| {
+                FontArc::try_from_slice(include_bytes!("../assets/fallback.ttf"))
+                    .expect("bundled font")
+            })
+    });
+    let font = FONT.clone();
     // ab_glyph uses pixel height; convert from Pillow's em-sized font setting.
     let size = if text.chars().count() <= 3 {
         155.0
@@ -206,6 +211,21 @@ impl<D: Device> Monitor<D> {
             self.device = None;
             false
         }
+    }
+}
+
+/// Failed polls in a row after which the tray stops showing the last reading.
+pub const STALE_AFTER: u32 = 5;
+
+/// Counts consecutive failed polls; true exactly once, when the last reading
+/// has become too old to keep showing as if it were live.
+pub fn went_stale(failures: &mut u32, ok: bool) -> bool {
+    if ok {
+        *failures = 0;
+        false
+    } else {
+        *failures = failures.saturating_add(1);
+        *failures == STALE_AFTER
     }
 }
 

@@ -4,8 +4,8 @@
 // Author: Jan Alexandr Kopřiva
 // License: MIT
 use rm1000i_tray::{
-    format_tooltip, label_and_color, make_icon, psu::Psu, Monitor, Status, INTERVAL, STARTUP_DELAY,
-    WHITE,
+    format_tooltip, label_and_color, make_icon, psu::Psu, went_stale, Monitor, Status, INTERVAL,
+    STARTUP_DELAY, WHITE,
 };
 use std::{
     sync::{
@@ -124,12 +124,19 @@ pub fn run() -> Result<(), String> {
             device: None,
             last: None,
         };
+        let mut failures = 0;
         while !worker_stop.load(Ordering::Relaxed) {
-            if monitor.poll(Psu::open) {
-                if let Some(status) = monitor.last.clone() {
-                    if proxy.send_event(status).is_err() {
-                        break;
-                    }
+            let ok = monitor.poll(Psu::open);
+            // After several misses show "??" instead of a reading that is no longer live.
+            let stale = went_stale(&mut failures, ok);
+            let status = if ok {
+                monitor.last.clone()
+            } else {
+                stale.then(Status::new)
+            };
+            if let Some(status) = status {
+                if proxy.send_event(status).is_err() {
+                    break;
                 }
             }
             thread::sleep(Duration::from_secs(INTERVAL));
