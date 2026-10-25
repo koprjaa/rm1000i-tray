@@ -2,7 +2,7 @@
 // File: src/psu.rs
 // Description: Bounded HID transactions for the RM1000i, without initialization writes.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 use crate::{
     protocol::{estimated_input, linear11, packet},
     stats_from_readings, Device, Numeric, Reading, Status,

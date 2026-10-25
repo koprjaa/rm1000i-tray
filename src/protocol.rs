@@ -2,7 +2,7 @@
 // File: src/protocol.rs
 // Description: Strictly read-only Corsair HID packet construction.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 pub const READ_OPCODES: &[u8] = &[0x88, 0x8b, 0x8c, 0x8d, 0x8e, 0x90, 0x96, 0xee];
 pub fn allowed(address: u8, opcode: u8, data: &[u8]) -> bool {
     (address == 3 && READ_OPCODES.contains(&opcode) && data.is_empty())

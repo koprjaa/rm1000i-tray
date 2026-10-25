@@ -3,7 +3,7 @@
 Displays Corsair RM1000i power readings in the Windows system tray.
 
 [![CI](https://github.com/koprjaa/rm1000i-tray/actions/workflows/ci.yml/badge.svg)](https://github.com/koprjaa/rm1000i-tray/actions/workflows/ci.yml)
-![license](https://img.shields.io/badge/license-MIT-A31F34?style=flat-square)
+![license](https://img.shields.io/badge/license-AGPL--3.0-A31F34?style=flat-square)
 
 <img src="screenshot.png" width="320" alt="Tray icon showing wattage" />
 
@@ -44,4 +44,4 @@ Tray mode waits 10 seconds before appearing, then polls with a one-second pause 
 
 ## License
 
-[MIT](LICENSE). The bundled fallback font retains its own license.
+[AGPL-3.0-or-later](LICENSE). The bundled fallback font retains its own license.

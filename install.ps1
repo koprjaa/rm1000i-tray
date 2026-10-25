@@ -2,7 +2,7 @@
 # File: install.ps1
 # Description: Build and register login autostart for the current user.
 # Author: Jan Alexandr Kopřiva
-# License: MIT
+# License: AGPL-3.0-or-later
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $scriptDir

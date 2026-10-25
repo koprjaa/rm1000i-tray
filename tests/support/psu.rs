@@ -2,8 +2,7 @@
 // File: tests/support/psu.rs
 // Description: Mock HID transport regression tests, included by the library.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
-
+// License: AGPL-3.0-or-later
 use super::*;
 use std::cell::RefCell;
 #[derive(Default)]

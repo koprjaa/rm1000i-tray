@@ -2,7 +2,7 @@
 // File: tests/logic.rs
 // Description: Equivalents of the original widget tests and protocol safety checks.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 use rm1000i_tray::protocol::*;
 use rm1000i_tray::*;
 use std::{cell::Cell, rc::Rc};

@@ -2,7 +2,7 @@
 // File: tests/cli.rs
 // Description: CLI subprocess integration tests without requiring hardware.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 use std::process::Command;
 fn run(args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_rm1000i-tray"))

@@ -2,12 +2,12 @@
 # File: Cargo.toml
 # Description: Package and dependency definitions.
 # Author: Jan Alexandr Kopřiva
-# License: MIT
+# License: AGPL-3.0-or-later
 [package]
 name = "rm1000i-tray"
 version = "1.0.0"
 edition = "2021"
-license = "MIT"
+license = "AGPL-3.0-or-later"
 description = "Displays Corsair RM1000i power readings in the Windows system tray."
 
 [dependencies]

@@ -2,7 +2,7 @@
 // File: src/main.rs
 // Description: Tray entry point and one-shot hardware diagnostics.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 #[cfg(windows)]
 mod windows;

@@ -2,6 +2,6 @@
 # File: .cargo/config.toml
 # Description: GNU Windows cross linker.
 # Author: Jan Alexandr Kopřiva
-# License: MIT
+# License: AGPL-3.0-or-later
 [target.x86_64-pc-windows-gnu]
 linker = "x86_64-w64-mingw32-gcc"

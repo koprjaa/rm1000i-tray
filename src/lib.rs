@@ -2,7 +2,7 @@
 // File: src/lib.rs
 // Description: Portable formatting, rasterization and reconnect logic.
 // Author: Jan Alexandr Kopřiva
-// License: MIT
+// License: AGPL-3.0-or-later
 pub mod protocol;
 pub mod psu;
 use ab_glyph::{point, Font, FontArc, PxScale, ScaleFont};
